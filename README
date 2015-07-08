@@ -1,10 +1,8 @@
 What is it?
 ===========
 
-This is a sample plugin for the Xfce panel, version 4.8 or higher. It
-demonstrates the basic usage of the plugin framework and provides a
-good layout for initial imports.
-
+This is an active application plugin for the Xfce panel, version 4.8 or higher. It
+displays the icon and name of the active application. It also provides a window menu for the active window.
 
 Installation
 ============
