@@ -50,7 +50,7 @@ sample_construct (XfcePanelPlugin *plugin);
 XFCE_PANEL_PLUGIN_REGISTER (sample_construct);
 
 static void
-on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  ActiveAppPlugin *sample)
+activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  ActiveAppPlugin *sample)
 
 	{
 		WnckWindow *active_window;
@@ -93,7 +93,7 @@ on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  Acti
 	}
 	
 static gint
-popup_handler (GtkWidget *widget, GdkEventButton *event, ActiveAppPlugin *sample)
+activeapp_popup_handler (GtkWidget *widget, GdkEventButton *event, ActiveAppPlugin *sample)
 {
 	if ((event->button == 1) 
 	&& (wnck_window_get_window_type (sample->wnck_window) != WNCK_WINDOW_DESKTOP))
@@ -231,7 +231,7 @@ sample_new (XfcePanelPlugin *plugin)
   gtk_widget_show (sample->label);
   gtk_box_pack_start (GTK_BOX (sample->hvbox), sample->label, FALSE, FALSE, 0);
   
-  on_active_window_changed (NULL, NULL, sample);
+  activeapp_on_active_window_changed (NULL, NULL, sample);
 
   return sample;
 }
@@ -339,8 +339,8 @@ sample_construct (XfcePanelPlugin *plugin)
   
   
   g_signal_connect (sample->screen, "active-window-changed",
-                    G_CALLBACK (on_active_window_changed), sample);
+                    G_CALLBACK (activeapp_on_active_window_changed), sample);
                     
   g_signal_connect (sample->ebox, "button-press-event", 
-			G_CALLBACK(popup_handler), sample);
+			G_CALLBACK(activeapp_popup_handler), sample);
 }
