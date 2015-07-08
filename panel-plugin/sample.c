@@ -48,13 +48,31 @@ sample_construct (XfcePanelPlugin *plugin);
 
 /* register the plugin */
 XFCE_PANEL_PLUGIN_REGISTER (sample_construct);
+static void
+activeapp_on_icon_changed (WnckWindow *window, ActiveAppPlugin *sample)
+{
+	sample->pixbuf=wnck_window_get_icon (sample->wnck_window);
+	gtk_image_set_from_pixbuf(GTK_IMAGE(sample->icon),sample->pixbuf);
+}
 
 static void
 activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  ActiveAppPlugin *sample)
 
 	{
+		if (sample->icon_changed_tag)
+		{
+			g_signal_handler_disconnect (sample->wnck_window, sample->icon_changed_tag);
+			sample->icon_changed_tag = 0;
+			
+		}
+		
 		WnckWindow *active_window;
 		sample->wnck_window = wnck_screen_get_active_window(sample->screen);
+				
+		sample->icon_changed_tag = g_signal_connect (sample->wnck_window, "icon-changed",
+                    G_CALLBACK (activeapp_on_icon_changed), sample);
+                    
+                    
 		WnckWindowType type;
 		WnckApplication *app;
 		
@@ -208,6 +226,8 @@ sample_new (XfcePanelPlugin *plugin)
 
   /* read the user settings */
   sample_read (sample);
+  
+  sample->icon_changed_tag = 0;
 
   /* get the current orientation */
   orientation = xfce_panel_plugin_get_orientation (plugin);
@@ -305,6 +325,8 @@ sample_construct (XfcePanelPlugin *plugin)
 
   /* create the plugin */
   sample = sample_new (plugin);
+  
+  
 
   /* add the ebox to the panel */
   gtk_container_add (GTK_CONTAINER (plugin), sample->ebox);

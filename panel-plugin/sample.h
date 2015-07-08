@@ -39,6 +39,7 @@ typedef struct
     
     WnckScreen      *screen;
     WnckWindow      *wnck_window;
+    gulong          icon_changed_tag;
 
     /* sample settings */
     gchar           *setting1;
