@@ -24,7 +24,7 @@ G_BEGIN_DECLS
 
 void
 sample_configure    (XfcePanelPlugin *plugin,
-                     SamplePlugin    *sample);
+                     ActiveAppPlugin    *sample);
 
 void
 sample_about        (XfcePanelPlugin *plugin);

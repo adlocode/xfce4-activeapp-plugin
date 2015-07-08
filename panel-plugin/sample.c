@@ -50,7 +50,7 @@ sample_construct (XfcePanelPlugin *plugin);
 XFCE_PANEL_PLUGIN_REGISTER (sample_construct);
 
 static void
-on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  SamplePlugin *sample)
+on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  ActiveAppPlugin *sample)
 
 	{
 		WnckWindow *active_window;
@@ -93,7 +93,7 @@ on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  Samp
 	}
 	
 static gint
-popup_handler (GtkWidget *widget, GdkEventButton *event, SamplePlugin *sample)
+popup_handler (GtkWidget *widget, GdkEventButton *event, ActiveAppPlugin *sample)
 {
 	if ((event->button == 1) 
 	&& (wnck_window_get_window_type (sample->wnck_window) != WNCK_WINDOW_DESKTOP))
@@ -113,7 +113,7 @@ popup_handler (GtkWidget *widget, GdkEventButton *event, SamplePlugin *sample)
 
 void
 sample_save (XfcePanelPlugin *plugin,
-             SamplePlugin    *sample)
+             ActiveAppPlugin    *sample)
 {
   XfceRc *rc;
   gchar  *file;
@@ -149,7 +149,7 @@ sample_save (XfcePanelPlugin *plugin,
 
 
 static void
-sample_read (SamplePlugin *sample)
+sample_read (ActiveAppPlugin *sample)
 {
   XfceRc      *rc;
   gchar       *file;
@@ -193,15 +193,15 @@ sample_read (SamplePlugin *sample)
 
 
 
-static SamplePlugin *
+static ActiveAppPlugin *
 sample_new (XfcePanelPlugin *plugin)
 {
-  SamplePlugin   *sample;
+  ActiveAppPlugin   *sample;
   GtkOrientation  orientation;
   GtkWidget      *label;
 
   /* allocate memory for the plugin structure */
-  sample = panel_slice_new0 (SamplePlugin);
+  sample = panel_slice_new0 (ActiveAppPlugin);
 
   /* pointer to plugin */
   sample->plugin = plugin;
@@ -225,7 +225,7 @@ sample_new (XfcePanelPlugin *plugin)
   gtk_widget_show (sample->icon);
   gtk_box_pack_start (GTK_BOX (sample->hvbox), sample->icon, FALSE, FALSE, 0);
   
-  sample->label = gtk_label_new (_("Sample"));
+  sample->label = gtk_label_new ("");
   gtk_label_set_max_width_chars (GTK_LABEL(sample->label), MAX_WIDTH_CHARS);
   gtk_label_set_ellipsize (GTK_LABEL (sample->label), PANGO_ELLIPSIZE_END);
   gtk_widget_show (sample->label);
@@ -240,7 +240,7 @@ sample_new (XfcePanelPlugin *plugin)
 
 static void
 sample_free (XfcePanelPlugin *plugin,
-             SamplePlugin    *sample)
+             ActiveAppPlugin    *sample)
 {
   GtkWidget *dialog;
 
@@ -257,7 +257,7 @@ sample_free (XfcePanelPlugin *plugin,
     g_free (sample->setting1);
 
   /* free the plugin structure */
-  panel_slice_free (SamplePlugin, sample);
+  panel_slice_free (ActiveAppPlugin, sample);
 }
 
 
@@ -265,7 +265,7 @@ sample_free (XfcePanelPlugin *plugin,
 static void
 sample_orientation_changed (XfcePanelPlugin *plugin,
                             GtkOrientation   orientation,
-                            SamplePlugin    *sample)
+                            ActiveAppPlugin    *sample)
 {
   /* change the orienation of the box */
   xfce_hvbox_set_orientation (XFCE_HVBOX (sample->hvbox), orientation);
@@ -276,7 +276,7 @@ sample_orientation_changed (XfcePanelPlugin *plugin,
 static gboolean
 sample_size_changed (XfcePanelPlugin *plugin,
                      gint             size,
-                     SamplePlugin    *sample)
+                     ActiveAppPlugin    *sample)
 {
   GtkOrientation orientation;
 
@@ -298,7 +298,7 @@ sample_size_changed (XfcePanelPlugin *plugin,
 static void
 sample_construct (XfcePanelPlugin *plugin)
 {
-  SamplePlugin *sample;
+  ActiveAppPlugin *sample;
 
   /* setup transation domain */
   xfce_textdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR, "UTF-8");

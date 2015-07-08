@@ -45,13 +45,13 @@ typedef struct
     gint             setting2;
     gboolean         setting3;
 }
-SamplePlugin;
+ActiveAppPlugin;
 
 
 
 void
 sample_save (XfcePanelPlugin *plugin,
-             SamplePlugin    *sample);
+             ActiveAppPlugin    *sample);
 
 G_END_DECLS
 

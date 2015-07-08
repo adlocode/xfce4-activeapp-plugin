@@ -38,7 +38,7 @@
 static void
 sample_configure_response (GtkWidget    *dialog,
                            gint          response,
-                           SamplePlugin *sample)
+                           ActiveAppPlugin *sample)
 {
   gboolean result;
 
@@ -70,7 +70,7 @@ sample_configure_response (GtkWidget    *dialog,
 
 void
 sample_configure (XfcePanelPlugin *plugin,
-                  SamplePlugin    *sample)
+                  ActiveAppPlugin    *sample)
 {
   GtkWidget *dialog;
 
