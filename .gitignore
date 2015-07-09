@@ -12,7 +12,14 @@ Makefile.in
 aclocal.m4
 autom4te.cache
 compile
-config*
+config.h
+config.h.in
+config.log
+config.status
+config.guess
+configure
+configure.ac
+configure.scan
 depcomp
 install-sh
 intltool*
