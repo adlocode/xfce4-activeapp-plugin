@@ -31,8 +31,8 @@
 #include <libxfce4panel/xfce-hvbox.h>
 #include <libwnck/libwnck.h>
 
-#include "sample.h"
-#include "sample-dialogs.h"
+#include "activeapp.h"
+#include "activeapp-dialogs.h"
 
 /* default settings */
 #define DEFAULT_SETTING1 NULL
@@ -120,7 +120,9 @@ activeapp_popup_handler (GtkWidget *widget, GdkEventButton *event, ActiveAppPlug
 		gtk_menu_attach_to_widget (GTK_MENU (sample->action_menu), sample->ebox, NULL);
 		GdkEventButton *event_button = (GdkEventButton *) event;
 	
-		gtk_menu_popup (GTK_MENU (sample->action_menu), NULL, NULL, NULL, NULL,
+		gtk_menu_popup (GTK_MENU (sample->action_menu), NULL, NULL, 
+					xfce_panel_plugin_position_menu,
+					sample->plugin,
 					event_button->button, event_button->time);
 	}
 	

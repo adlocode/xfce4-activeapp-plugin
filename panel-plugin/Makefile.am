@@ -14,10 +14,10 @@ plugindir = \
 	$(libdir)/xfce4/panel/plugins
 
 libactiveapp_la_SOURCES = \
-	sample.c \
-	sample.h \
-	sample-dialogs.c \
-	sample-dialogs.h
+	activeapp.c \
+	activeapp.h \
+	activeapp-dialogs.c \
+	activeapp-dialogs.h
 
 libactiveapp_la_CFLAGS = \
 	$(LIBXFCE4UTIL_CFLAGS) \

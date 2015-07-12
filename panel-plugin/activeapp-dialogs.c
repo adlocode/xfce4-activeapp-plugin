@@ -27,8 +27,8 @@
 #include <libxfce4ui/libxfce4ui.h>
 #include <libxfce4panel/xfce-panel-plugin.h>
 
-#include "sample.h"
-#include "sample-dialogs.h"
+#include "activeapp.h"
+#include "activeapp-dialogs.h"
 
 /* the website url */
 #define PLUGIN_WEBSITE "http://goodies.xfce.org/projects/panel-plugins/xfce4-sample-plugin"
