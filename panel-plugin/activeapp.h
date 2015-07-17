@@ -56,7 +56,7 @@ ActiveAppPlugin;
 
 void
 sample_save (XfcePanelPlugin *plugin,
-             ActiveAppPlugin    *sample);
+             ActiveAppPlugin    *activeapp);
 
 G_END_DECLS
 
