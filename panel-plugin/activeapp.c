@@ -108,7 +108,7 @@ char
 							
 							if (name)
 							{
-								freeable = TRUE;
+								*freeable = TRUE;
 								free (dir);
 								g_key_file_free (key_file);
 								return name;
@@ -147,44 +147,44 @@ activeapp_on_icon_changed (WnckWindow *window, ActiveAppPlugin *sample)
 }
 
 static void
-activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  ActiveAppPlugin *sample)
+activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  ActiveAppPlugin *activeapp)
 
 	{
-		if (sample->icon_changed_tag)
+		if (activeapp->icon_changed_tag)
 		{
-			g_signal_handler_disconnect (sample->wnck_window, sample->icon_changed_tag);
-			sample->icon_changed_tag = 0;
+			g_signal_handler_disconnect (activeapp->wnck_window, activeapp->icon_changed_tag);
+			activeapp->icon_changed_tag = 0;
 			
 		}
 		
 		WnckWindow *active_window;
-		sample->wnck_window = wnck_screen_get_active_window(sample->screen);
+		activeapp->wnck_window = wnck_screen_get_active_window(activeapp->screen);
 				
-		sample->icon_changed_tag = g_signal_connect (sample->wnck_window, "icon-changed",
-                    G_CALLBACK (activeapp_on_icon_changed), sample);
+		activeapp->icon_changed_tag = g_signal_connect (activeapp->wnck_window, "icon-changed",
+                    G_CALLBACK (activeapp_on_icon_changed), activeapp);
                     
                     
 		WnckWindowType type;
 		WnckApplication *app;
 		
-		gtk_image_clear(GTK_IMAGE(sample->icon));
+		gtk_image_clear(GTK_IMAGE(activeapp->icon));
 		
-		if (sample->wnck_window)
+		if (activeapp->wnck_window)
 		{
-			type=wnck_window_get_window_type (sample->wnck_window);
+			type=wnck_window_get_window_type (activeapp->wnck_window);
 			if (type == WNCK_WINDOW_DESKTOP || type == WNCK_WINDOW_DOCK || type == WNCK_WINDOW_UTILITY)
 			{	
-				gtk_label_set_text(GTK_LABEL(sample->label),"");
+				gtk_label_set_text(GTK_LABEL(activeapp->label),"");
 			}
 			
 			else
 			{
 							
-				app=wnck_window_get_application(sample->wnck_window);
+				app=wnck_window_get_application(activeapp->wnck_window);
 				
 				//Get class group name
 				XClassHint ch;
-				XGetClassHint (sample->dpy, wnck_window_get_xid(sample->wnck_window),
+				XGetClassHint (activeapp->dpy, wnck_window_get_xid(activeapp->wnck_window),
 					&ch);
 				
 				//Build up path	
@@ -196,8 +196,8 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 				filename = strcat (class_group_name, ".desktop");
 				
 								
-				if (wnck_window_is_skip_pager(sample->wnck_window))
-				{gtk_label_set_text(GTK_LABEL(sample->label),"");
+				if (wnck_window_is_skip_pager(activeapp->wnck_window))
+				{gtk_label_set_text(GTK_LABEL(activeapp->label),"");
 				
 			}
 			else
@@ -205,14 +205,17 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 				gboolean freeable;
 				char *app_name = 
 					activeapp_get_app_name
-						(sample->system_data_dirs, filename, sample->error, app, &freeable);
+						(activeapp->system_data_dirs, filename, activeapp->error, app, &freeable);
 						
-				gtk_label_set_text(GTK_LABEL(sample->label),app_name);
-				sample->pixbuf=wnck_window_get_icon (sample->wnck_window);
-				gtk_image_set_from_pixbuf(GTK_IMAGE(sample->icon),sample->pixbuf);
+				gtk_label_set_text(GTK_LABEL(activeapp->label),app_name);
+				activeapp->pixbuf= g_object_ref (wnck_window_get_icon (activeapp->wnck_window));
+				gtk_image_set_from_pixbuf(GTK_IMAGE(activeapp->icon),activeapp->pixbuf);
 				
 				if (freeable && app_name)
 					free (app_name);
+					
+				g_object_unref (activeapp->pixbuf);
+				
 			}
 			
 			free (class_group_name);
@@ -220,24 +223,24 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 			}
 }
 	else
-	{gtk_label_set_text(GTK_LABEL(sample->label),"");
-		gtk_image_clear(GTK_IMAGE(sample->icon));
+	{gtk_label_set_text(GTK_LABEL(activeapp->label),"");
+		gtk_image_clear(GTK_IMAGE(activeapp->icon));
 		}
 	}
 	
 static gint
-activeapp_popup_handler (GtkWidget *widget, GdkEventButton *event, ActiveAppPlugin *sample)
+activeapp_popup_handler (GtkWidget *widget, GdkEventButton *event, ActiveAppPlugin *activeapp)
 {
 	if ((event->button == 1) 
-	&& (wnck_window_get_window_type (sample->wnck_window) != WNCK_WINDOW_DESKTOP))
+	&& (wnck_window_get_window_type (activeapp->wnck_window) != WNCK_WINDOW_DESKTOP))
 	{
-		sample->action_menu = wnck_action_menu_new (sample->wnck_window);
-		gtk_menu_attach_to_widget (GTK_MENU (sample->action_menu), sample->ebox, NULL);
+		activeapp->action_menu = wnck_action_menu_new (activeapp->wnck_window);
+		gtk_menu_attach_to_widget (GTK_MENU (activeapp->action_menu), activeapp->ebox, NULL);
 		GdkEventButton *event_button = (GdkEventButton *) event;
 	
-		gtk_menu_popup (GTK_MENU (sample->action_menu), NULL, NULL, 
+		gtk_menu_popup (GTK_MENU (activeapp->action_menu), NULL, NULL, 
 					xfce_panel_plugin_position_menu,
-					sample->plugin,
+					activeapp->plugin,
 					event_button->button, event_button->time);
 	}
 	
@@ -248,7 +251,7 @@ activeapp_popup_handler (GtkWidget *widget, GdkEventButton *event, ActiveAppPlug
 
 void
 sample_save (XfcePanelPlugin *plugin,
-             ActiveAppPlugin    *sample)
+             ActiveAppPlugin    *activeapp)
 {
   XfceRc *rc;
   gchar  *file;
@@ -270,11 +273,11 @@ sample_save (XfcePanelPlugin *plugin,
     {
       /* save the settings */
       DBG(".");
-      if (sample->setting1)
-        xfce_rc_write_entry    (rc, "setting1", sample->setting1);
+      if (activeapp->setting1)
+        xfce_rc_write_entry    (rc, "setting1", activeapp->setting1);
 
-      xfce_rc_write_int_entry  (rc, "setting2", sample->setting2);
-      xfce_rc_write_bool_entry (rc, "setting3", sample->setting3);
+      xfce_rc_write_int_entry  (rc, "setting2", activeapp->setting2);
+      xfce_rc_write_bool_entry (rc, "setting3", activeapp->setting3);
 
       /* close the rc file */
       xfce_rc_close (rc);
@@ -284,14 +287,14 @@ sample_save (XfcePanelPlugin *plugin,
 
 
 static void
-sample_read (ActiveAppPlugin *sample)
+sample_read (ActiveAppPlugin *activeapp)
 {
   XfceRc      *rc;
   gchar       *file;
   const gchar *value;
 
   /* get the plugin config file location */
-  file = xfce_panel_plugin_save_location (sample->plugin, TRUE);
+  file = xfce_panel_plugin_save_location (activeapp->plugin, TRUE);
 
   if (G_LIKELY (file != NULL))
     {
@@ -305,10 +308,10 @@ sample_read (ActiveAppPlugin *sample)
         {
           /* read the settings */
           value = xfce_rc_read_entry (rc, "setting1", DEFAULT_SETTING1);
-          sample->setting1 = g_strdup (value);
+          activeapp->setting1 = g_strdup (value);
 
-          sample->setting2 = xfce_rc_read_int_entry (rc, "setting2", DEFAULT_SETTING2);
-          sample->setting3 = xfce_rc_read_bool_entry (rc, "setting3", DEFAULT_SETTING3);
+          activeapp->setting2 = xfce_rc_read_int_entry (rc, "setting2", DEFAULT_SETTING2);
+          activeapp->setting3 = xfce_rc_read_bool_entry (rc, "setting3", DEFAULT_SETTING3);
 
           /* cleanup */
           xfce_rc_close (rc);
@@ -321,9 +324,9 @@ sample_read (ActiveAppPlugin *sample)
   /* something went wrong, apply default values */
   DBG ("Applying default settings");
 
-  sample->setting1 = g_strdup (DEFAULT_SETTING1);
-  sample->setting2 = DEFAULT_SETTING2;
-  sample->setting3 = DEFAULT_SETTING3;
+  activeapp->setting1 = g_strdup (DEFAULT_SETTING1);
+  activeapp->setting2 = DEFAULT_SETTING2;
+  activeapp->setting3 = DEFAULT_SETTING3;
 }
 
 
@@ -331,46 +334,46 @@ sample_read (ActiveAppPlugin *sample)
 static ActiveAppPlugin *
 sample_new (XfcePanelPlugin *plugin)
 {
-  ActiveAppPlugin   *sample;
+  ActiveAppPlugin   *activeapp;
   GtkOrientation  orientation;
   GtkWidget      *label;
 
   /* allocate memory for the plugin structure */
-  sample = panel_slice_new0 (ActiveAppPlugin);
+  activeapp = panel_slice_new0 (ActiveAppPlugin);
 
   /* pointer to plugin */
-  sample->plugin = plugin;
+  activeapp->plugin = plugin;
 
   /* read the user settings */
-  sample_read (sample);
+  sample_read (activeapp);
   
-  sample->icon_changed_tag = 0;
+  activeapp->icon_changed_tag = 0;
 
   /* get the current orientation */
   orientation = xfce_panel_plugin_get_orientation (plugin);
 
   /* create some panel widgets */
-  sample->ebox = gtk_event_box_new ();
-  gtk_widget_show (sample->ebox);
+  activeapp->ebox = gtk_event_box_new ();
+  gtk_widget_show (activeapp->ebox);
 
-  sample->hvbox = xfce_hvbox_new (orientation, FALSE, 2);
-  gtk_widget_show (sample->hvbox);
-  gtk_container_add (GTK_CONTAINER (sample->ebox), sample->hvbox);
+  activeapp->hvbox = xfce_hvbox_new (orientation, FALSE, 2);
+  gtk_widget_show (activeapp->hvbox);
+  gtk_container_add (GTK_CONTAINER (activeapp->ebox), activeapp->hvbox);
 
   /* some sample widgets */
-  sample->icon = gtk_image_new ();
-  gtk_widget_show (sample->icon);
-  gtk_box_pack_start (GTK_BOX (sample->hvbox), sample->icon, FALSE, FALSE, 0);
+  activeapp->icon = gtk_image_new ();
+  gtk_widget_show (activeapp->icon);
+  gtk_box_pack_start (GTK_BOX (activeapp->hvbox), activeapp->icon, FALSE, FALSE, 0);
   
-  sample->label = gtk_label_new ("");
-  gtk_label_set_max_width_chars (GTK_LABEL(sample->label), MAX_WIDTH_CHARS);
-  gtk_label_set_ellipsize (GTK_LABEL (sample->label), PANGO_ELLIPSIZE_END);
-  gtk_widget_show (sample->label);
-  gtk_box_pack_start (GTK_BOX (sample->hvbox), sample->label, FALSE, FALSE, 0);
+  activeapp->label = gtk_label_new ("");
+  gtk_label_set_max_width_chars (GTK_LABEL(activeapp->label), MAX_WIDTH_CHARS);
+  gtk_label_set_ellipsize (GTK_LABEL (activeapp->label), PANGO_ELLIPSIZE_END);
+  gtk_widget_show (activeapp->label);
+  gtk_box_pack_start (GTK_BOX (activeapp->hvbox), activeapp->label, FALSE, FALSE, 0);
   
-  activeapp_on_active_window_changed (NULL, NULL, sample);
+  activeapp_on_active_window_changed (NULL, NULL, activeapp);
 
-  return sample;
+  return activeapp;
 }
 
 
