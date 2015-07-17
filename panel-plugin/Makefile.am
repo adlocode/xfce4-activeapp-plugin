@@ -24,6 +24,7 @@ libactiveapp_la_CFLAGS = \
 	$(LIBXFCE4UI_CFLAGS) \
 	$(LIBXFCE4PANEL_CFLAGS) \
 	$(LIBWNCK_CFLAGS) \
+	$(X11_CFLAGS) \
 	$(PLATFORM_CFLAGS)
 
 libactiveapp_la_LDFLAGS = \
@@ -37,6 +38,7 @@ libactiveapp_la_LIBADD = \
 	$(LIBXFCE4UTIL_LIBS) \
 	$(LIBXFCE4UI_LIBS) \
 	$(LIBWNCK_LIBS) \
+	$(X11_LIBS) \
 	$(LIBXFCE4PANEL_LIBS)
 
 #

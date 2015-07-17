@@ -30,6 +30,8 @@
 #include <libxfce4panel/xfce-panel-plugin.h>
 #include <libxfce4panel/xfce-hvbox.h>
 #include <libwnck/libwnck.h>
+#include <X11/Xlib.h>
+#include <stdlib.h>
 
 #include "activeapp.h"
 #include "activeapp-dialogs.h"
@@ -39,6 +41,7 @@
 #define DEFAULT_SETTING2 1
 #define DEFAULT_SETTING3 FALSE
 #define MAX_WIDTH_CHARS 30
+#define BUF_LENGTH 1024
 
 
 /* prototypes */
@@ -48,6 +51,94 @@ sample_construct (XfcePanelPlugin *plugin);
 
 /* register the plugin */
 XFCE_PANEL_PLUGIN_REGISTER (sample_construct);
+
+static char*
+latin1_to_utf8 (const char *latin1)
+{
+  GString *str;
+  const char *p;
+
+  str = g_string_new (NULL);
+
+  p = latin1;
+  while (*p)
+    {
+      g_string_append_unichar (str, (gunichar) *p);
+      ++p;
+    }
+
+  return g_string_free (str, FALSE);
+}
+
+char 
+*activeapp_get_app_name 
+(const gchar * const * system_data_dirs, char *filename, GError **error, WnckApplication *app, gboolean *freeable)
+{				
+				*freeable = FALSE;
+				
+				int i;
+				for (i=0; system_data_dirs [i]; i++)
+  
+				{
+					
+					
+					if (system_data_dirs [i])
+					{
+							char *dir = malloc (sizeof (char)* BUF_LENGTH);
+							
+							strncpy (dir, latin1_to_utf8 (system_data_dirs [i]), BUF_LENGTH - 1);
+							dir[BUF_LENGTH - 1] = '\0';
+							
+							GKeyFile *key_file = g_key_file_new ();
+							
+							
+							
+							g_key_file_load_from_file (key_file,
+								strcat (strcat (dir, "/applications/"), filename),
+								G_KEY_FILE_NONE,
+								error);
+								
+							char *name = (g_key_file_get_string (key_file,
+								"Desktop Entry",
+								"Name",
+								error));
+								
+				
+
+							
+							if (name)
+							{
+								freeable = TRUE;
+								free (dir);
+								g_key_file_free (key_file);
+								return name;
+							
+							}
+							
+							else
+							
+							{
+								free (name);
+								free (dir);
+								g_key_file_free (key_file);
+							}
+							
+							
+							
+							
+					}
+				
+				
+				
+					
+					
+				}
+
+		
+		return wnck_application_get_name (app);
+			
+}
+
 static void
 activeapp_on_icon_changed (WnckWindow *window, ActiveAppPlugin *sample)
 {
@@ -89,19 +180,43 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 			else
 			{
 							
-					
-				
 				app=wnck_window_get_application(sample->wnck_window);
+				
+				//Get class group name
+				XClassHint ch;
+				XGetClassHint (sample->dpy, wnck_window_get_xid(sample->wnck_window),
+					&ch);
+				
+				//Build up path	
+				char *class_group_name = malloc (sizeof (char)*BUF_LENGTH);
+				strncpy (class_group_name, latin1_to_utf8 (ch.res_name), BUF_LENGTH - 1);
+				class_group_name [BUF_LENGTH - 1] = '\0';
+				
+				char *filename =  malloc (sizeof (char)*BUF_LENGTH);
+				filename = strcat (class_group_name, ".desktop");
+				
 								
 				if (wnck_window_is_skip_pager(sample->wnck_window))
 				{gtk_label_set_text(GTK_LABEL(sample->label),"");
 				
 			}
 			else
-			{gtk_label_set_text(GTK_LABEL(sample->label),wnck_application_get_name (app));
+			{
+				gboolean freeable;
+				char *app_name = 
+					activeapp_get_app_name
+						(sample->system_data_dirs, filename, sample->error, app, &freeable);
+						
+				gtk_label_set_text(GTK_LABEL(sample->label),app_name);
 				sample->pixbuf=wnck_window_get_icon (sample->wnck_window);
 				gtk_image_set_from_pixbuf(GTK_IMAGE(sample->icon),sample->pixbuf);
+				
+				if (freeable && app_name)
+					free (app_name);
 			}
+			
+			free (class_group_name);
+			
 			}
 }
 	else
@@ -360,6 +475,10 @@ sample_construct (XfcePanelPlugin *plugin)
                     G_CALLBACK (sample_about), NULL);
                     
   sample->screen = wnck_screen_get_default ();
+  
+  sample->dpy = gdk_x11_get_default_xdisplay();
+  
+  sample->system_data_dirs = g_get_system_data_dirs ();
   
   
   g_signal_connect (sample->screen, "active-window-changed",

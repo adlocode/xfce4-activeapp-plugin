@@ -20,6 +20,7 @@
 #ifndef __SAMPLE_H__
 #define __SAMPLE_H__
 #include <libwnck/libwnck.h>
+#include <X11/Xlib.h>
 
 G_BEGIN_DECLS
 
@@ -37,9 +38,12 @@ typedef struct
     GtkWidget       *menu;
     GtkWidget       *action_menu;
     
+    Display 		*dpy;
     WnckScreen      *screen;
     WnckWindow      *wnck_window;
     gulong          icon_changed_tag;
+    const gchar * const * system_data_dirs;
+    GError **error;
 
     /* sample settings */
     gchar           *setting1;
