@@ -72,7 +72,7 @@ latin1_to_utf8 (const char *latin1)
 
 char 
 *activeapp_get_app_name 
-(const gchar * const * system_data_dirs, char *filename, GError **error, WnckApplication *app, gboolean *freeable)
+(const gchar * const * system_data_dirs, gchar *filename, GError **error, WnckApplication *app, gboolean *freeable)
 {				
 				*freeable = FALSE;
 				
@@ -84,21 +84,22 @@ char
 					
 					if (system_data_dirs [i])
 					{
-							char *dir = malloc (sizeof (char)* BUF_LENGTH);
 							
-							strncpy (dir, latin1_to_utf8 (system_data_dirs [i]), BUF_LENGTH - 1);
-							dir[BUF_LENGTH - 1] = '\0';
 							
 							GKeyFile *key_file = g_key_file_new ();
 							
+							gchar *full_name;
+							
+							full_name = g_strconcat (latin1_to_utf8 (system_data_dirs [i]),
+								"/applications/", filename, NULL);
 							
 							
 							g_key_file_load_from_file (key_file,
-								strcat (strcat (dir, "/applications/"), filename),
+								full_name,
 								G_KEY_FILE_NONE,
 								error);
 								
-							char *name = (g_key_file_get_string (key_file,
+							gchar *name = (g_key_file_get_string (key_file,
 								"Desktop Entry",
 								"Name",
 								error));
@@ -109,7 +110,7 @@ char
 							if (name)
 							{
 								*freeable = TRUE;
-								free (dir);
+
 								g_key_file_free (key_file);
 								return name;
 							
@@ -118,8 +119,8 @@ char
 							else
 							
 							{
-								free (name);
-								free (dir);
+								g_free (name);
+
 								g_key_file_free (key_file);
 							}
 							
@@ -138,6 +139,7 @@ char
 		return wnck_application_get_name (app);
 			
 }
+
 
 static void
 activeapp_on_icon_changed (WnckWindow *window, ActiveAppPlugin *sample)
@@ -187,14 +189,9 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 				XGetClassHint (activeapp->dpy, wnck_window_get_xid(activeapp->wnck_window),
 					&ch);
 				
-				//Build up path	
-				char *class_group_name = malloc (sizeof (char)*BUF_LENGTH);
-				strncpy (class_group_name, latin1_to_utf8 (ch.res_name), BUF_LENGTH - 1);
-				class_group_name [BUF_LENGTH - 1] = '\0';
+				gchar *filename;
 				
-				char *filename =  malloc (sizeof (char)*BUF_LENGTH);
-				filename = strcat (class_group_name, ".desktop");
-				
+				filename = g_strconcat (latin1_to_utf8 (ch.res_name), ".desktop", NULL);
 								
 				if (wnck_window_is_skip_pager(activeapp->wnck_window))
 				{gtk_label_set_text(GTK_LABEL(activeapp->label),"");
@@ -203,7 +200,7 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 			else
 			{
 				gboolean freeable;
-				char *app_name = 
+				gchar *app_name = 
 					activeapp_get_app_name
 						(activeapp->system_data_dirs, filename, activeapp->error, app, &freeable);
 						
@@ -212,13 +209,15 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 				gtk_image_set_from_pixbuf(GTK_IMAGE(activeapp->icon),activeapp->pixbuf);
 				
 				if (freeable && app_name)
-					free (app_name);
+					g_free (app_name);
 					
 				g_object_unref (activeapp->pixbuf);
 				
 			}
 			
-			free (class_group_name);
+			
+			g_free (filename);
+
 			
 			}
 }
@@ -353,6 +352,8 @@ sample_new (XfcePanelPlugin *plugin)
   orientation = xfce_panel_plugin_get_orientation (plugin);
 
   /* create some panel widgets */
+
+  
   activeapp->ebox = gtk_event_box_new ();
   gtk_widget_show (activeapp->ebox);
 

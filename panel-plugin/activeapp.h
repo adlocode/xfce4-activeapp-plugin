@@ -43,6 +43,7 @@ typedef struct
     WnckWindow      *wnck_window;
     gulong          icon_changed_tag;
     const gchar * const * system_data_dirs;
+
     GError **error;
 
     /* sample settings */
