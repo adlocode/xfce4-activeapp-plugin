@@ -142,16 +142,33 @@ char
 
 
 static void
-activeapp_on_icon_changed (WnckWindow *window, ActiveAppPlugin *sample)
+activeapp_on_icon_changed (WnckWindow *window, ActiveAppPlugin *activeapp)
 {
-	sample->pixbuf=wnck_window_get_icon (sample->wnck_window);
-	gtk_image_set_from_pixbuf(GTK_IMAGE(sample->icon),sample->pixbuf);
+	WnckWindowType type;
+	
+	type=wnck_window_get_window_type (activeapp->wnck_window);
+	
+	if (!(type == WNCK_WINDOW_DESKTOP || type == WNCK_WINDOW_DOCK || type == WNCK_WINDOW_UTILITY))
+	{	
+		activeapp->pixbuf=wnck_window_get_icon (activeapp->wnck_window);
+		gtk_image_set_from_pixbuf(GTK_IMAGE(activeapp->icon),activeapp->pixbuf);
+	}
+	else
+	{
+		return;
+	}
 }
 
 static void
 activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  ActiveAppPlugin *activeapp)
 
 	{
+		if (activeapp->action_menu)
+		{
+			gtk_widget_destroy (activeapp->action_menu);
+			activeapp->action_menu = NULL;
+		}
+		
 		if (activeapp->icon_changed_tag)
 		{
 			g_signal_handler_disconnect (activeapp->wnck_window, activeapp->icon_changed_tag);
@@ -233,10 +250,14 @@ activeapp_popup_handler (GtkWidget *widget, GdkEventButton *event, ActiveAppPlug
 	if ((event->button == 1) 
 	&& (wnck_window_get_window_type (activeapp->wnck_window) != WNCK_WINDOW_DESKTOP))
 	{
-		activeapp->action_menu = wnck_action_menu_new (activeapp->wnck_window);
-		gtk_menu_attach_to_widget (GTK_MENU (activeapp->action_menu), activeapp->ebox, NULL);
+		if (!activeapp->action_menu)
+		{
+			activeapp->action_menu = wnck_action_menu_new (activeapp->wnck_window);
+			gtk_menu_attach_to_widget (GTK_MENU (activeapp->action_menu), activeapp->ebox, NULL);
+			
+		}
+		
 		GdkEventButton *event_button = (GdkEventButton *) event;
-	
 		gtk_menu_popup (GTK_MENU (activeapp->action_menu), NULL, NULL, 
 					xfce_panel_plugin_position_menu,
 					activeapp->plugin,
@@ -245,6 +266,7 @@ activeapp_popup_handler (GtkWidget *widget, GdkEventButton *event, ActiveAppPlug
 	
 	else
 	{
+		
 	}			
 }
 
@@ -346,7 +368,17 @@ sample_new (XfcePanelPlugin *plugin)
   /* read the user settings */
   sample_read (activeapp);
   
+  /*Initialize variables */
   activeapp->icon_changed_tag = 0;
+  
+  activeapp->screen = wnck_screen_get_default ();
+  
+  activeapp->dpy = gdk_x11_get_default_xdisplay();
+  
+  activeapp->system_data_dirs = g_get_system_data_dirs ();
+  
+  activeapp->action_menu = NULL;
+  
 
   /* get the current orientation */
   orientation = xfce_panel_plugin_get_orientation (plugin);
@@ -478,11 +510,7 @@ sample_construct (XfcePanelPlugin *plugin)
   g_signal_connect (G_OBJECT (plugin), "about",
                     G_CALLBACK (sample_about), NULL);
                     
-  sample->screen = wnck_screen_get_default ();
   
-  sample->dpy = gdk_x11_get_default_xdisplay();
-  
-  sample->system_data_dirs = g_get_system_data_dirs ();
   
   
   g_signal_connect (sample->screen, "active-window-changed",
