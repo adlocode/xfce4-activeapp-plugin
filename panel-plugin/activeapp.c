@@ -88,14 +88,14 @@ char
 							
 							GKeyFile *key_file = g_key_file_new ();
 							
-							gchar *full_name;
+							gchar *full_filename;
 							
-							full_name = g_strconcat (latin1_to_utf8 (system_data_dirs [i]),
+							full_filename = g_strconcat (latin1_to_utf8 (system_data_dirs [i]),
 								"/applications/", filename, NULL);
 							
 							
 							g_key_file_load_from_file (key_file,
-								full_name,
+								full_filename,
 								G_KEY_FILE_NONE,
 								error);
 								
@@ -110,7 +110,7 @@ char
 							if (name)
 							{
 								*freeable = TRUE;
-
+								g_free (full_filename);
 								g_key_file_free (key_file);
 								return name;
 							
@@ -120,7 +120,7 @@ char
 							
 							{
 								g_free (name);
-
+								g_free (full_filename);
 								g_key_file_free (key_file);
 							}
 							
@@ -176,7 +176,6 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 			
 		}
 		
-		WnckWindow *active_window;
 		activeapp->wnck_window = wnck_screen_get_active_window(activeapp->screen);
 				
 		activeapp->icon_changed_tag = g_signal_connect (activeapp->wnck_window, "icon-changed",
@@ -191,6 +190,7 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 		if (activeapp->wnck_window)
 		{
 			type=wnck_window_get_window_type (activeapp->wnck_window);
+			
 			if (type == WNCK_WINDOW_DESKTOP || type == WNCK_WINDOW_DOCK || type == WNCK_WINDOW_UTILITY)
 			{	
 				gtk_label_set_text(GTK_LABEL(activeapp->label),"");
@@ -204,34 +204,41 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 				//Get class group name
 				XClassHint ch;
 				XGetClassHint (activeapp->dpy, wnck_window_get_xid(activeapp->wnck_window),
-					&ch);
+								&ch);
 				
 				gchar *filename;
 				
 				filename = g_strconcat (latin1_to_utf8 (ch.res_name), ".desktop", NULL);
 								
 				if (wnck_window_is_skip_pager(activeapp->wnck_window))
-				{gtk_label_set_text(GTK_LABEL(activeapp->label),"");
-				
-			}
-			else
-			{
-				gboolean freeable;
-				gchar *app_name = 
-					activeapp_get_app_name
-						(activeapp->system_data_dirs, filename, activeapp->error, app, &freeable);
-						
-				gtk_label_set_text(GTK_LABEL(activeapp->label),app_name);
-				activeapp->pixbuf= g_object_ref (wnck_window_get_icon (activeapp->wnck_window));
-				gtk_image_set_from_pixbuf(GTK_IMAGE(activeapp->icon),activeapp->pixbuf);
-				
-				if (freeable && app_name)
-					g_free (app_name);
+				{
+					gtk_label_set_text(GTK_LABEL(activeapp->label),"");
 					
-				g_object_unref (activeapp->pixbuf);
 				
-			}
+				}
+				else
+				{
+					gboolean freeable;
+					gchar *app_name = 
+						activeapp_get_app_name
+							(activeapp->system_data_dirs, filename,activeapp->error, app, &freeable);
+						
+					gtk_label_set_text(GTK_LABEL(activeapp->label),app_name);
+					activeapp->pixbuf= g_object_ref (wnck_window_get_icon (activeapp->wnck_window));
+					gtk_image_set_from_pixbuf(GTK_IMAGE(activeapp->icon),activeapp->pixbuf);
+				
+					if (freeable && app_name)
+						g_free (app_name);
+					
+					g_object_unref (activeapp->pixbuf);
+				
+				}
 			
+			if (ch.res_name)
+				XFree (ch.res_name);
+			
+			if (ch.res_class)	
+				XFree (ch.res_class);
 			
 			g_free (filename);
 
