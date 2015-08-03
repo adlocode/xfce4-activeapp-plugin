@@ -72,7 +72,7 @@ latin1_to_utf8 (const char *latin1)
 
 char 
 *activeapp_get_app_name 
-(const gchar * const * system_data_dirs, gchar *filename, GError **error, WnckApplication *app, gboolean *freeable)
+(const gchar * const * system_data_dirs, gchar *filename, WnckApplication *app, gboolean *freeable)
 {				
 				*freeable = FALSE;
 				
@@ -97,12 +97,12 @@ char
 							g_key_file_load_from_file (key_file,
 								full_filename,
 								G_KEY_FILE_NONE,
-								error);
+								NULL);
 								
 							gchar *name = (g_key_file_get_string (key_file,
 								"Desktop Entry",
 								"Name",
-								error));
+								NULL));
 								
 				
 
@@ -221,7 +221,7 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 					gboolean freeable;
 					gchar *app_name = 
 						activeapp_get_app_name
-							(activeapp->system_data_dirs, filename,activeapp->error, app, &freeable);
+							(activeapp->system_data_dirs, filename, app, &freeable);
 						
 					gtk_label_set_text(GTK_LABEL(activeapp->label),app_name);
 					activeapp->pixbuf= g_object_ref (wnck_window_get_icon (activeapp->wnck_window));
@@ -275,6 +275,11 @@ activeapp_popup_handler (GtkWidget *widget, GdkEventButton *event, ActiveAppPlug
 	{
 		
 	}			
+}
+
+static int activeapp_xhandler_xerror (Display *dpy, XErrorEvent *e)
+{
+	return 0;
 }
 
 void
@@ -385,6 +390,8 @@ sample_new (XfcePanelPlugin *plugin)
   activeapp->system_data_dirs = g_get_system_data_dirs ();
   
   activeapp->action_menu = NULL;
+  
+  XSetErrorHandler (activeapp_xhandler_xerror);
   
 
   /* get the current orientation */
