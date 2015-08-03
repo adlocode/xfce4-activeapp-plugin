@@ -22,6 +22,8 @@
 #include <libwnck/libwnck.h>
 #include <X11/Xlib.h>
 
+#define XFCE_PANEL_IS_SMALL (xfce_panel_plugin_get_size (activeapp->plugin) < 23)
+
 G_BEGIN_DECLS
 
 /* plugin structure */

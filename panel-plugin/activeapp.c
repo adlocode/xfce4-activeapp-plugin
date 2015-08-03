@@ -151,7 +151,7 @@ activeapp_on_icon_changed (WnckWindow *window, ActiveAppPlugin *activeapp)
 	if (!(type == WNCK_WINDOW_DESKTOP || type == WNCK_WINDOW_DOCK || type == WNCK_WINDOW_UTILITY))
 	{	
 		activeapp->pixbuf=wnck_window_get_icon (activeapp->wnck_window);
-		gtk_image_set_from_pixbuf(GTK_IMAGE(activeapp->icon),activeapp->pixbuf);
+		xfce_panel_image_set_from_pixbuf(XFCE_PANEL_IMAGE(activeapp->icon),activeapp->pixbuf);
 	}
 	else
 	{
@@ -185,7 +185,7 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 		WnckWindowType type;
 		WnckApplication *app;
 		
-		gtk_image_clear(GTK_IMAGE(activeapp->icon));
+		xfce_panel_image_clear(XFCE_PANEL_IMAGE(activeapp->icon));
 		
 		if (activeapp->wnck_window)
 		{
@@ -224,8 +224,17 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 							(activeapp->system_data_dirs, filename, app, &freeable);
 						
 					gtk_label_set_text(GTK_LABEL(activeapp->label),app_name);
-					activeapp->pixbuf= g_object_ref (wnck_window_get_icon (activeapp->wnck_window));
-					gtk_image_set_from_pixbuf(GTK_IMAGE(activeapp->icon),activeapp->pixbuf);
+					
+					if (XFCE_PANEL_IS_SMALL)
+					{
+						activeapp->pixbuf= g_object_ref (wnck_window_get_mini_icon (activeapp->wnck_window));
+					}
+					else
+					{
+						activeapp->pixbuf= g_object_ref (wnck_window_get_icon (activeapp->wnck_window));
+					}
+					
+					xfce_panel_image_set_from_pixbuf(XFCE_PANEL_IMAGE(activeapp->icon),activeapp->pixbuf);
 				
 					if (freeable && app_name)
 						g_free (app_name);
@@ -247,7 +256,7 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 }
 	else
 	{gtk_label_set_text(GTK_LABEL(activeapp->label),"");
-		gtk_image_clear(GTK_IMAGE(activeapp->icon));
+		xfce_panel_image_clear(XFCE_PANEL_IMAGE(activeapp->icon));
 		}
 	}
 	
@@ -408,7 +417,7 @@ sample_new (XfcePanelPlugin *plugin)
   gtk_container_add (GTK_CONTAINER (activeapp->ebox), activeapp->hvbox);
 
   /* some sample widgets */
-  activeapp->icon = gtk_image_new ();
+  activeapp->icon = xfce_panel_image_new ();
   gtk_widget_show (activeapp->icon);
   gtk_box_pack_start (GTK_BOX (activeapp->hvbox), activeapp->icon, FALSE, FALSE, 0);
   
