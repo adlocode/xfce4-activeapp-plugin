@@ -410,6 +410,7 @@ sample_new (XfcePanelPlugin *plugin)
 
   
   activeapp->ebox = gtk_event_box_new ();
+  gtk_event_box_set_visible_window (GTK_EVENT_BOX (activeapp->ebox), FALSE);
   gtk_widget_show (activeapp->ebox);
 
   activeapp->hvbox = xfce_hvbox_new (orientation, FALSE, 2);
