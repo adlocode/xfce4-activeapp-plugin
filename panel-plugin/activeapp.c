@@ -72,9 +72,8 @@ latin1_to_utf8 (const char *latin1)
 
 char 
 *activeapp_get_app_name 
-(const gchar * const * system_data_dirs, gchar *filename, WnckApplication *app, gboolean *freeable)
+(const gchar * const * system_data_dirs, gchar *filename, WnckApplication *app)
 {				
-				*freeable = FALSE;
 				
 				int i;
 				for (i=0; system_data_dirs [i]; i++)
@@ -109,7 +108,6 @@ char
 							
 							if (name)
 							{
-								*freeable = TRUE;
 								g_free (full_filename);
 								g_key_file_free (key_file);
 								return name;
@@ -136,7 +134,7 @@ char
 				}
 
 		
-		return wnck_application_get_name (app);
+		return g_strdup (wnck_application_get_name (app));
 			
 }
 
@@ -218,10 +216,9 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 				}
 				else
 				{
-					gboolean freeable;
 					gchar *app_name = 
 						activeapp_get_app_name
-							(activeapp->system_data_dirs, filename, app, &freeable);
+							(activeapp->system_data_dirs, filename, app);
 						
 					gtk_label_set_text(GTK_LABEL(activeapp->label),app_name);
 					
@@ -236,17 +233,17 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 					
 					xfce_panel_image_set_from_pixbuf(XFCE_PANEL_IMAGE(activeapp->icon),activeapp->pixbuf);
 				
-					if (freeable && app_name)
+					if (app_name)
 						g_free (app_name);
 					
 					g_object_unref (activeapp->pixbuf);
 				
 				}
 			
-			if (ch.res_name)
+			if (ch.res_name != None)
 				XFree (ch.res_name);
 			
-			if (ch.res_class)	
+			if (ch.res_class != None)	
 				XFree (ch.res_class);
 			
 			g_free (filename);
