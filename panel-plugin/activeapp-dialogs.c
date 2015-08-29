@@ -33,7 +33,10 @@
 /* the website url */
 #define PLUGIN_WEBSITE "http://goodies.xfce.org/projects/panel-plugins/xfce4-sample-plugin"
 
-
+static void activeapp_tooltip_checkbox_toggled (GtkToggleButton *togglebutton, ActiveAppPlugin *activeapp)
+{
+	activeapp->show_tooltips = gtk_toggle_button_get_active (togglebutton);
+}
 
 static void
 sample_configure_response (GtkWidget    *dialog,
@@ -73,12 +76,14 @@ sample_configure (XfcePanelPlugin *plugin,
                   ActiveAppPlugin    *sample)
 {
   GtkWidget *dialog;
+  GtkWidget *hbox;
+  GtkWidget *tooltip_checkbox;
 
   /* block the plugin menu */
   xfce_panel_plugin_block_menu (plugin);
 
   /* create the dialog */
-  dialog = xfce_titled_dialog_new_with_buttons (_("Sample Plugin"),
+  dialog = xfce_titled_dialog_new_with_buttons (_("Active Application Plugin"),
                                                 GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (plugin))),
                                                 GTK_DIALOG_DESTROY_WITH_PARENT | GTK_DIALOG_NO_SEPARATOR,
                                                 GTK_STOCK_HELP, GTK_RESPONSE_HELP,
@@ -94,10 +99,19 @@ sample_configure (XfcePanelPlugin *plugin,
   /* link the dialog to the plugin, so we can destroy it when the plugin
    * is closed, but the dialog is still open */
   g_object_set_data (G_OBJECT (plugin), "dialog", dialog);
-
+  
+  tooltip_checkbox = gtk_check_button_new_with_label ("Show tooltips");
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (tooltip_checkbox), sample->show_tooltips);
+  gtk_box_pack_start (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog))), 
+		tooltip_checkbox, TRUE, TRUE, 6);
+	gtk_widget_show (tooltip_checkbox);
+	
   /* connect the reponse signal to the dialog */
   g_signal_connect (G_OBJECT (dialog), "response",
                     G_CALLBACK(sample_configure_response), sample);
+                    
+    g_signal_connect (G_OBJECT (tooltip_checkbox), "toggled",
+                    G_CALLBACK(activeapp_tooltip_checkbox_toggled), sample);
 
   /* show the entire dialog */
   gtk_widget_show (dialog);

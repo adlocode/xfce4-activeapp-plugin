@@ -52,6 +52,7 @@ typedef struct
     gchar           *setting1;
     gint             setting2;
     gboolean         setting3;
+    gboolean         show_tooltips;
 }
 ActiveAppPlugin;
 

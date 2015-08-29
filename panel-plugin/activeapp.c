@@ -179,11 +179,12 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 		activeapp->icon_changed_tag = g_signal_connect (activeapp->wnck_window, "icon-changed",
                     G_CALLBACK (activeapp_on_icon_changed), activeapp);
                     
-                    
+                   
 		WnckWindowType type;
 		WnckApplication *app;
 		
 		xfce_panel_image_clear(XFCE_PANEL_IMAGE(activeapp->icon));
+		gtk_widget_set_has_tooltip (activeapp->ebox, FALSE);
 		
 		if (activeapp->wnck_window)
 		{
@@ -232,6 +233,11 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 					}
 					
 					xfce_panel_image_set_from_pixbuf(XFCE_PANEL_IMAGE(activeapp->icon),activeapp->pixbuf);
+					
+					if (activeapp->show_tooltips)
+					{
+						gtk_widget_set_tooltip_text (activeapp->ebox, wnck_window_get_name (activeapp->wnck_window));
+					}
 				
 					if (app_name)
 						g_free (app_name);
@@ -387,6 +393,8 @@ sample_new (XfcePanelPlugin *plugin)
   sample_read (activeapp);
   
   /*Initialize variables */
+  activeapp->show_tooltips = TRUE;
+  
   activeapp->icon_changed_tag = 0;
   
   activeapp->screen = wnck_screen_get_default ();
