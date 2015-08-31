@@ -47,7 +47,8 @@
 /* prototypes */
 static void
 sample_construct (XfcePanelPlugin *plugin);
-
+static void
+activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  ActiveAppPlugin *activeapp);
 
 /* register the plugin */
 XFCE_PANEL_PLUGIN_REGISTER (sample_construct);
@@ -156,7 +157,13 @@ activeapp_on_icon_changed (WnckWindow *window, ActiveAppPlugin *activeapp)
 		return;
 	}
 }
-
+static void
+activeapp_on_name_changed (WnckWindow *window, ActiveAppPlugin *activeapp)
+{
+	if (activeapp->show_tooltips && gtk_widget_get_has_tooltip (activeapp->ebox))
+		gtk_widget_set_tooltip_text (activeapp->ebox, wnck_window_get_name (activeapp->wnck_window));
+}
+		
 static void
 activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  ActiveAppPlugin *activeapp)
 
@@ -173,12 +180,20 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 			activeapp->icon_changed_tag = 0;
 			
 		}
+		if (activeapp->name_changed_tag)
+		{
+			g_signal_handler_disconnect (activeapp->wnck_window, activeapp->name_changed_tag);
+			activeapp->name_changed_tag = 0;
+			
+		}
 		
 		activeapp->wnck_window = wnck_screen_get_active_window(activeapp->screen);
 				
 		activeapp->icon_changed_tag = g_signal_connect (activeapp->wnck_window, "icon-changed",
                     G_CALLBACK (activeapp_on_icon_changed), activeapp);
-                    
+          
+        activeapp->name_changed_tag = g_signal_connect (activeapp->wnck_window, "name-changed",
+                    G_CALLBACK (activeapp_on_name_changed), activeapp);     
                    
 		WnckWindowType type;
 		WnckApplication *app;
@@ -396,6 +411,7 @@ sample_new (XfcePanelPlugin *plugin)
   activeapp->show_tooltips = TRUE;
   
   activeapp->icon_changed_tag = 0;
+  activeapp->name_changed_tag = 0;
   
   activeapp->screen = wnck_screen_get_default ();
   
