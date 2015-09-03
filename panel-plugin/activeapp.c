@@ -76,7 +76,12 @@ char
 (const gchar * const * system_data_dirs, gchar *filename, WnckApplication *app)
 {				
 				
+				gboolean success;
+				
 				int i;
+				
+				success = FALSE;
+				
 				for (i=0; system_data_dirs [i]; i++)
   
 				{
@@ -94,7 +99,7 @@ char
 								"/applications/", filename, NULL);
 							
 							
-							g_key_file_load_from_file (key_file,
+							success = g_key_file_load_from_file (key_file,
 								full_filename,
 								G_KEY_FILE_NONE,
 								NULL);
@@ -118,9 +123,14 @@ char
 							else
 							
 							{
-								g_free (name);
-								g_free (full_filename);
-								g_key_file_free (key_file);
+								if (name)
+									g_free (name);
+									
+								if (full_filename)
+									g_free (full_filename);
+									
+								if (success)
+									g_key_file_free (key_file);
 							}
 							
 							
@@ -135,8 +145,7 @@ char
 				}
 
 		
-		return g_strdup (wnck_application_get_name (app));
-			
+		return g_strdup (wnck_application_get_name (app));	
 }
 
 
@@ -187,6 +196,8 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 			
 		}
 		
+		gint status = 0;
+		
 		activeapp->wnck_window = wnck_screen_get_active_window(activeapp->screen);
 				
 		activeapp->icon_changed_tag = g_signal_connect (activeapp->wnck_window, "icon-changed",
@@ -217,8 +228,8 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 				
 				//Get class group name
 				XClassHint ch;
-				XGetClassHint (activeapp->dpy, wnck_window_get_xid(activeapp->wnck_window),
-								&ch);
+				status = XGetClassHint (activeapp->dpy, wnck_window_get_xid(activeapp->wnck_window),
+									&ch);
 				
 				gchar *filename;
 				
@@ -261,10 +272,10 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 				
 				}
 			
-			if (ch.res_name != None)
+			if (status != 0)
 				XFree (ch.res_name);
 			
-			if (ch.res_class != None)	
+			if (status != 0)	
 				XFree (ch.res_class);
 			
 			g_free (filename);
