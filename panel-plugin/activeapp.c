@@ -104,9 +104,10 @@ char
 								G_KEY_FILE_NONE,
 								NULL);
 								
-							gchar *name = (g_key_file_get_string (key_file,
+							gchar *name = (g_key_file_get_locale_string (key_file,
 								"Desktop Entry",
 								"Name",
+								NULL,
 								NULL));
 								
 				
