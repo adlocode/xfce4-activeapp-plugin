@@ -26,6 +26,8 @@
 
 
 #include <gtk/gtk.h>
+#include <gio/gio.h>
+#include <gio/gdesktopappinfo.h>
 #include <libxfce4util/libxfce4util.h>
 #include <libxfce4panel/xfce-panel-plugin.h>
 #include <libxfce4panel/xfce-hvbox.h>
@@ -71,94 +73,64 @@ latin1_to_utf8 (const char *latin1)
   return g_string_free (str, FALSE);
 }
 
-char 
-*activeapp_get_app_name 
-(const gchar * const * system_data_dirs, gchar *filename, WnckApplication *app)
-{				
-				
-				gboolean success;
-				
-				int i;
-				
-				success = FALSE;
-				
-				for (i=0; system_data_dirs [i]; i++)
-  
-				{
-					
-					
-					if (system_data_dirs [i])
-					{
-							
-							
-							GKeyFile *key_file = g_key_file_new ();
-							
-							gchar *full_filename;
-							
-							full_filename = g_strconcat (latin1_to_utf8 (system_data_dirs [i]),
-								"/applications/", filename, NULL);
-							
-							
-							success = g_key_file_load_from_file (key_file,
-								full_filename,
-								G_KEY_FILE_NONE,
-								NULL);
-								
-							gchar *name = (g_key_file_get_locale_string (key_file,
-								"Desktop Entry",
-								"Name",
-								NULL,
-								NULL));
-								
-				
+const gchar *
+activeapp_get_app_name
+(const gchar * const * system_data_dir, gchar *filename)
+{
+	const gchar *app_name = NULL;
+	gboolean success = FALSE;
+	GKeyFile *key_file = g_key_file_new ();
 
-							
-							if (name)
-							{
-								g_free (full_filename);
-								g_key_file_free (key_file);
-								return name;
-							
-							}
-							
-							else
-							
-							{
-								if (name)
-									g_free (name);
-									
-								if (full_filename)
-									g_free (full_filename);
-									
-								if (success)
-									g_key_file_free (key_file);
-							}
-							
-							
-							
-							
-					}
-				
-				
-				
-					
-					
-				}
+	gchar *full_filename;
 
-		
-		return g_strdup (wnck_application_get_name (app));	
+	full_filename = g_strconcat (latin1_to_utf8 (system_data_dir),
+				"/applications/", filename, NULL);
+
+
+	success = g_key_file_load_from_file (key_file,
+				full_filename,
+				G_KEY_FILE_NONE,
+				NULL);
+	if (success)
+		{
+			app_name = (g_key_file_get_locale_string (key_file,
+					"Desktop Entry",
+					"Name",
+					NULL,
+					NULL));
+		}
+	else
+		{
+			filename = g_ascii_strdown (filename, -1);
+			full_filename = g_strconcat (latin1_to_utf8 (system_data_dir),
+				"/applications/", filename, NULL);
+
+
+			success = g_key_file_load_from_file (key_file,
+				full_filename,
+				G_KEY_FILE_NONE,
+				NULL);
+
+			app_name = (g_key_file_get_locale_string (key_file,
+					"Desktop Entry",
+					"Name",
+					NULL,
+					NULL));
+		}
+	return app_name;
 }
+
 
 
 static void
 activeapp_on_icon_changed (WnckWindow *window, ActiveAppPlugin *activeapp)
 {
 	WnckWindowType type;
-	
+
 	type=wnck_window_get_window_type (activeapp->wnck_window);
-	
+
 	if (!(type == WNCK_WINDOW_DESKTOP || type == WNCK_WINDOW_DOCK || type == WNCK_WINDOW_UTILITY))
-	{	
+	{
 		activeapp->pixbuf=wnck_window_get_icon (activeapp->wnck_window);
 		xfce_panel_image_set_from_pixbuf(XFCE_PANEL_IMAGE(activeapp->icon),activeapp->pixbuf);
 	}
@@ -173,81 +145,114 @@ activeapp_on_name_changed (WnckWindow *window, ActiveAppPlugin *activeapp)
 	if (activeapp->show_tooltips && gtk_widget_get_has_tooltip (activeapp->ebox))
 		gtk_widget_set_tooltip_text (activeapp->ebox, wnck_window_get_name (activeapp->wnck_window));
 }
-		
+
 static void
 activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  ActiveAppPlugin *activeapp)
 
 	{
+		GDesktopAppInfo *app_info;
+
 		if (activeapp->action_menu)
 		{
 			gtk_widget_destroy (activeapp->action_menu);
 			activeapp->action_menu = NULL;
 		}
-		
+
 		if (activeapp->icon_changed_tag)
 		{
 			g_signal_handler_disconnect (activeapp->wnck_window, activeapp->icon_changed_tag);
 			activeapp->icon_changed_tag = 0;
-			
+
 		}
 		if (activeapp->name_changed_tag)
 		{
 			g_signal_handler_disconnect (activeapp->wnck_window, activeapp->name_changed_tag);
 			activeapp->name_changed_tag = 0;
-			
+
 		}
-		
+
 		gint status = 0;
-		
+
 		activeapp->wnck_window = wnck_screen_get_active_window(activeapp->screen);
-				
+
 		activeapp->icon_changed_tag = g_signal_connect (activeapp->wnck_window, "icon-changed",
                     G_CALLBACK (activeapp_on_icon_changed), activeapp);
-          
+
         activeapp->name_changed_tag = g_signal_connect (activeapp->wnck_window, "name-changed",
-                    G_CALLBACK (activeapp_on_name_changed), activeapp);     
-                   
+                    G_CALLBACK (activeapp_on_name_changed), activeapp);
+
 		WnckWindowType type;
 		WnckApplication *app;
-		
+
 		xfce_panel_image_clear(XFCE_PANEL_IMAGE(activeapp->icon));
 		gtk_widget_set_has_tooltip (activeapp->ebox, FALSE);
-		
+
 		if (activeapp->wnck_window)
 		{
 			type=wnck_window_get_window_type (activeapp->wnck_window);
 			
 			if (type == WNCK_WINDOW_DESKTOP || type == WNCK_WINDOW_DOCK || type == WNCK_WINDOW_UTILITY)
-			{	
+			{
 				gtk_label_set_text(GTK_LABEL(activeapp->label),"");
 			}
-			
+
 			else
 			{
-							
+
 				app=wnck_window_get_application(activeapp->wnck_window);
-				
+
 				//Get class group name
 				XClassHint ch;
 				status = XGetClassHint (activeapp->dpy, wnck_window_get_xid(activeapp->wnck_window),
 									&ch);
-				
-				gchar *filename;
-				
+
+				gchar *filename = NULL;
+
 				filename = g_strconcat (latin1_to_utf8 (ch.res_name), ".desktop", NULL);
-								
+
 				if (wnck_window_is_skip_pager(activeapp->wnck_window))
 				{
 					gtk_label_set_text(GTK_LABEL(activeapp->label),"");
-					
-				
+
+
 				}
 				else
 				{
-					gchar *app_name = 
-						activeapp_get_app_name
-							(activeapp->system_data_dirs, filename, app);
-						
+					gchar *app_name = NULL;
+
+					gboolean success;
+
+				int i;
+
+				success = FALSE;
+
+				for (i=0; activeapp->system_data_dirs [i]; i++)
+
+				{
+
+
+					if (activeapp->system_data_dirs [i])
+					{
+
+						app_name = activeapp_get_app_name (activeapp->system_data_dirs [i],
+										   filename);
+
+					if (app_name == NULL)
+						{
+							filename = g_strconcat (latin1_to_utf8 (ch.res_class), ".desktop", NULL);
+							app_name = activeapp_get_app_name (activeapp->system_data_dirs [i],
+										   filename);
+
+						}
+					}
+				}
+
+					if (app_name == NULL)
+						{
+							app_name = g_strdup (latin1_to_utf8 (ch.res_class));
+						}
+
+
 					gtk_label_set_text(GTK_LABEL(activeapp->label),app_name);
 					
 					if (XFCE_PANEL_IS_SMALL)

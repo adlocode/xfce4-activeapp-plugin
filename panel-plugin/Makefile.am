@@ -22,6 +22,8 @@ libactiveapp_la_SOURCES = \
 libactiveapp_la_CFLAGS = \
 	$(LIBXFCE4UTIL_CFLAGS) \
 	$(LIBXFCE4UI_CFLAGS) \
+	$(GIO_CFLAGS) \
+	$(GIO_UNIX_CFLAGS) \
 	$(LIBXFCE4PANEL_CFLAGS) \
 	$(LIBWNCK_CFLAGS) \
 	$(X11_CFLAGS) \
@@ -38,6 +40,8 @@ libactiveapp_la_LIBADD = \
 	$(LIBXFCE4UTIL_LIBS) \
 	$(LIBXFCE4UI_LIBS) \
 	$(LIBWNCK_LIBS) \
+	$(GIO_LIBS) \
+	$(GIO_UNIX_LIBS) \
 	$(X11_LIBS) \
 	$(LIBXFCE4PANEL_LIBS)
 
