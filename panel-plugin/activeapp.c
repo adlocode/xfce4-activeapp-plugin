@@ -77,11 +77,12 @@ const gchar *
 activeapp_get_app_name
 (const gchar * const * system_data_dir, gchar *filename)
 {
-	const gchar *app_name = NULL;
+	gchar *app_name = NULL;
+	gchar *canonicalized = NULL;
 	gboolean success = FALSE;
 	GKeyFile *key_file = g_key_file_new ();
 
-	gchar *full_filename;
+	gchar *full_filename = NULL;
 
 	full_filename = g_strconcat (latin1_to_utf8 (system_data_dir),
 				"/applications/", filename, NULL);
@@ -101,10 +102,10 @@ activeapp_get_app_name
 		}
 	else
 		{
-			filename = g_ascii_strdown (filename, -1);
+			g_free (full_filename);
+			canonicalized = g_ascii_strdown (filename, -1);
 			full_filename = g_strconcat (latin1_to_utf8 (system_data_dir),
-				"/applications/", filename, NULL);
-
+				"/applications/", canonicalized, NULL);
 
 			success = g_key_file_load_from_file (key_file,
 				full_filename,
@@ -116,7 +117,13 @@ activeapp_get_app_name
 					"Name",
 					NULL,
 					NULL));
+			if (canonicalized)
+				g_free (canonicalized);
 		}
+
+	if (full_filename)
+		g_free (full_filename);
+
 	return app_name;
 }
 
@@ -239,6 +246,7 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 
 					if (app_name == NULL)
 						{
+							g_free (filename);
 							filename = g_strconcat (latin1_to_utf8 (ch.res_class), ".desktop", NULL);
 							app_name = activeapp_get_app_name (activeapp->system_data_dirs [i],
 										   filename);
