@@ -26,8 +26,6 @@
 
 
 #include <gtk/gtk.h>
-#include <gio/gio.h>
-#include <gio/gdesktopappinfo.h>
 #include <libxfce4util/libxfce4util.h>
 #include <libxfce4panel/xfce-panel-plugin.h>
 #include <libxfce4panel/xfce-hvbox.h>
@@ -160,7 +158,6 @@ static void
 activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_window,  ActiveAppPlugin *activeapp)
 
 	{
-		GDesktopAppInfo *app_info;
 
 		if (activeapp->action_menu)
 		{

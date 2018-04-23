@@ -2,8 +2,7 @@
 Type=X-XFCE-PanelPlugin
 Encoding=UTF-8
 _Name=Active Application Plugin
-_Comment=Sample plugin for the Xfce panel
-Icon=xfce4-sample-plugin
+_Comment=Displays the application name for the active window
 X-XFCE-Module=activeapp
 X-XFCE-Internal=false
 X-XFCE-Unique=false
