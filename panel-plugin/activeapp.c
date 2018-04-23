@@ -210,12 +210,15 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 
 				//Get class group name
 				XClassHint ch;
+				ch.res_name = NULL;
+				ch.res_class = NULL;
 				status = XGetClassHint (activeapp->dpy, wnck_window_get_xid(activeapp->wnck_window),
 									&ch);
 
 				gchar *filename = NULL;
 
-				filename = g_strconcat (latin1_to_utf8 (ch.res_name), ".desktop", NULL);
+				if (ch.res_name)
+					filename = g_strconcat (latin1_to_utf8 (ch.res_name), ".desktop", NULL);
 
 				if (wnck_window_is_skip_pager(activeapp->wnck_window))
 				{
@@ -241,10 +244,11 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 					if (activeapp->system_data_dirs [i])
 					{
 
-						app_name = activeapp_get_app_name (activeapp->system_data_dirs [i],
+						if (ch.res_name)
+							app_name = activeapp_get_app_name (activeapp->system_data_dirs [i],
 										   filename);
 
-					if (app_name == NULL)
+					if (app_name == NULL && ch.res_class)
 						{
 							g_free (filename);
 							filename = g_strconcat (latin1_to_utf8 (ch.res_class), ".desktop", NULL);
@@ -255,10 +259,12 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 					}
 				}
 
-					if (app_name == NULL)
+					if (app_name == NULL && ch.res_class != NULL)
 						{
 							app_name = g_strdup (latin1_to_utf8 (ch.res_class));
 						}
+					else if (ch.res_class == NULL)
+						app_name = g_strdup ("Unknown");
 
 
 					gtk_label_set_text(GTK_LABEL(activeapp->label),app_name);
@@ -285,14 +291,14 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 					g_object_unref (activeapp->pixbuf);
 				
 				}
-			
+
 			if (status != 0)
 				XFree (ch.res_name);
 			
 			if (status != 0)	
 				XFree (ch.res_class);
-			
-			g_free (filename);
+			if (filename)
+				g_free (filename);
 
 			
 			}
