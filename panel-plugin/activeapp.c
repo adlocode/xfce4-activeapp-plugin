@@ -121,6 +121,9 @@ activeapp_get_app_name
 				g_free (canonicalized);
 		}
 
+	if (success)
+		g_key_file_free (key_file);
+
 	if (full_filename)
 		g_free (full_filename);
 
