@@ -122,7 +122,6 @@ activeapp_get_app_name
 				g_free (canonicalized);
 		}
 
-	//if (success)
 		g_key_file_free (key_file);
 
 	if (full_filename)
@@ -192,7 +191,6 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
                     G_CALLBACK (activeapp_on_name_changed), activeapp);
 
 		WnckWindowType type;
-		WnckApplication *app;
 
 		xfce_panel_image_clear(XFCE_PANEL_IMAGE(activeapp->icon));
 		gtk_widget_set_has_tooltip (activeapp->ebox, FALSE);
@@ -208,9 +206,6 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 
 			else
 			{
-
-				app=wnck_window_get_application(activeapp->wnck_window);
-
 				//Get class group name
 				XClassHint ch;
 				ch.res_name = NULL;
