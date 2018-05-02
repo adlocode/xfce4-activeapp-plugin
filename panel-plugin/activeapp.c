@@ -110,16 +110,19 @@ activeapp_get_app_name
 				G_KEY_FILE_NONE,
 				NULL);
 
-			app_name = (g_key_file_get_locale_string (key_file,
-					"Desktop Entry",
-					"Name",
-					NULL,
-					NULL));
+			if (success)
+			{
+				app_name = (g_key_file_get_locale_string (key_file,
+						"Desktop Entry",
+						"Name",
+						NULL,
+						NULL));
+			}
 			if (canonicalized)
 				g_free (canonicalized);
 		}
 
-	if (success)
+	//if (success)
 		g_key_file_free (key_file);
 
 	if (full_filename)
