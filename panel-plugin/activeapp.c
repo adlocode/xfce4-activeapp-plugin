@@ -243,13 +243,22 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 
 					if (app_name == NULL && ch.res_class)
 						{
-							g_free (filename);
+							if (filename)
+								{
+									g_free (filename);
+									filename = NULL;
+								}
 							filename = g_strconcat (latin1_to_utf8 (ch.res_class), ".desktop", NULL);
 							app_name = activeapp_get_app_name (activeapp->system_data_dirs [i],
 										   filename);
 
 						}
 					}
+					if (filename)
+						{
+							g_free (filename);
+							filename = NULL;
+						}
 				}
 
 					if (app_name == NULL && ch.res_class != NULL)
