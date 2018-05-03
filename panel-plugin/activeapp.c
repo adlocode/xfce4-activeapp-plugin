@@ -180,7 +180,6 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 
 		}
 
-		gint status = 0;
 
 		activeapp->wnck_window = wnck_screen_get_active_window(activeapp->screen);
 
@@ -210,7 +209,7 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 				XClassHint ch;
 				ch.res_name = NULL;
 				ch.res_class = NULL;
-				status = XGetClassHint (activeapp->dpy, wnck_window_get_xid(activeapp->wnck_window),
+				XGetClassHint (activeapp->dpy, wnck_window_get_xid(activeapp->wnck_window),
 									&ch);
 
 				gchar *filename = NULL;
@@ -290,10 +289,9 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 				
 				}
 
-			if (status != 0)
+			if (ch.res_name)
 				XFree (ch.res_name);
-			
-			if (status != 0)	
+			if (ch.res_class)
 				XFree (ch.res_class);
 			if (filename)
 				g_free (filename);
