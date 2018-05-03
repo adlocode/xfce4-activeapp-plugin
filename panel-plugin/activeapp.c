@@ -214,8 +214,6 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 
 				gchar *filename = NULL;
 
-				if (ch.res_name)
-					filename = g_strconcat (latin1_to_utf8 (ch.res_name), ".desktop", NULL);
 
 				if (wnck_window_is_skip_pager(activeapp->wnck_window))
 				{
@@ -227,11 +225,7 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 				{
 					gchar *app_name = NULL;
 
-					gboolean success;
-
 				int i;
-
-				success = FALSE;
 
 				for (i=0; activeapp->system_data_dirs [i]; i++)
 
@@ -240,6 +234,8 @@ activeapp_on_active_window_changed (WnckScreen *screen, WnckWindow *previous_win
 
 					if (activeapp->system_data_dirs [i])
 					{
+						if (ch.res_name)
+							filename = g_strconcat (latin1_to_utf8 (ch.res_name), ".desktop", NULL);
 
 						if (ch.res_name)
 							app_name = activeapp_get_app_name (activeapp->system_data_dirs [i],
