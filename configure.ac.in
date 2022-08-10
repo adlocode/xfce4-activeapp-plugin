@@ -78,12 +78,12 @@ AC_DEFINE([WNCK_I_KNOW_THIS_IS_UNSTABLE], [1], [wnck])
 dnl ***********************************
 dnl *** Check for required packages ***
 dnl ***********************************
-XDT_CHECK_PACKAGE([GTK], [gtk+-2.0], [2.20.0])
-XDT_CHECK_PACKAGE([LIBWNCK], [libwnck-1.0], [1.0.0])
+XDT_CHECK_PACKAGE([GTK], [gtk+-3.0], [3.20.0])
+XDT_CHECK_PACKAGE([LIBWNCK], [libwnck-3.0], [3.0.0])
 XDT_CHECK_PACKAGE([X11], [x11], [0.0.0])
-XDT_CHECK_PACKAGE([LIBXFCE4UI], [libxfce4ui-1], [4.8.0])
-XDT_CHECK_PACKAGE([LIBXFCE4UTIL], [libxfce4util-1.0], [4.8.0])
-XDT_CHECK_PACKAGE([LIBXFCE4PANEL], [libxfce4panel-1.0], [4.8.0])
+XDT_CHECK_PACKAGE([LIBXFCE4UI], [libxfce4ui-2], [4.14.0])
+XDT_CHECK_PACKAGE([LIBXFCE4UTIL], [libxfce4util-1.0], [4.14.0])
+XDT_CHECK_PACKAGE([LIBXFCE4PANEL], [libxfce4panel-2.0], [4.14.0])
 
 dnl ***********************************
 dnl *** Check for debugging support ***

@@ -27,10 +27,10 @@
 
 #include <gtk/gtk.h>
 #include <libxfce4util/libxfce4util.h>
-#include <libxfce4panel/xfce-panel-plugin.h>
-#include <libxfce4panel/xfce-hvbox.h>
+#include <libxfce4panel/libxfce4panel.h>
 #include <libwnck/libwnck.h>
 #include <X11/Xlib.h>
+#include <gdk/gdkx.h>
 #include <stdlib.h>
 
 #include "activeapp.h"
@@ -431,7 +431,7 @@ sample_new (XfcePanelPlugin *plugin)
   GtkWidget      *label;
 
   /* allocate memory for the plugin structure */
-  activeapp = panel_slice_new0 (ActiveAppPlugin);
+  activeapp = g_slice_new0 (ActiveAppPlugin);
 
   /* pointer to plugin */
   activeapp->plugin = plugin;
@@ -466,7 +466,7 @@ sample_new (XfcePanelPlugin *plugin)
   gtk_event_box_set_visible_window (GTK_EVENT_BOX (activeapp->ebox), FALSE);
   gtk_widget_show (activeapp->ebox);
 
-  activeapp->hvbox = xfce_hvbox_new (orientation, FALSE, 2);
+  activeapp->hvbox = gtk_box_new (orientation, 2);
   gtk_widget_show (activeapp->hvbox);
   gtk_container_add (GTK_CONTAINER (activeapp->ebox), activeapp->hvbox);
 
@@ -480,6 +480,8 @@ sample_new (XfcePanelPlugin *plugin)
   gtk_label_set_ellipsize (GTK_LABEL (activeapp->label), PANGO_ELLIPSIZE_END);
   gtk_widget_show (activeapp->label);
   gtk_box_pack_start (GTK_BOX (activeapp->hvbox), activeapp->label, FALSE, FALSE, 0);
+  
+  xfce_panel_plugin_set_expand (plugin, TRUE);
   
   activeapp_on_active_window_changed (NULL, NULL, activeapp);
 
@@ -507,7 +509,7 @@ sample_free (XfcePanelPlugin *plugin,
     g_free (sample->setting1);
 
   /* free the plugin structure */
-  panel_slice_free (ActiveAppPlugin, sample);
+  g_slice_free (ActiveAppPlugin, sample);
 }
 
 
@@ -518,7 +520,7 @@ sample_orientation_changed (XfcePanelPlugin *plugin,
                             ActiveAppPlugin    *sample)
 {
   /* change the orienation of the box */
-  xfce_hvbox_set_orientation (XFCE_HVBOX (sample->hvbox), orientation);
+  gtk_orientable_set_orientation (GTK_ORIENTABLE (sample->hvbox), orientation);
 }
 
 

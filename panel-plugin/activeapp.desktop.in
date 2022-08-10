@@ -6,3 +6,4 @@ _Comment=Displays the application name for the active window
 X-XFCE-Module=activeapp
 X-XFCE-Internal=false
 X-XFCE-Unique=false
+X-XFCE-API=2.0
